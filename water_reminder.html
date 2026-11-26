@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hourly Water Reminder</title>
+<style>
+  :root { color-scheme: light; font-family: system-ui, Arial, sans-serif; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #eef8f2; color: #163326; }
+  main { width: min(92vw, 430px); box-sizing: border-box; padding: 30px; border-radius: 24px; background: white; box-shadow: 0 12px 40px #1233; text-align: center; }
+  .drop { font-size: 54px; }
+  h1 { margin: 8px 0; font-size: 28px; }
+  p { color: #557064; line-height: 1.5; }
+  #status { margin: 22px 0; padding: 14px; border-radius: 14px; background: #eef8f2; font-weight: 600; }
+  button { border: 0; border-radius: 12px; padding: 13px 20px; margin: 5px; font-size: 16px; font-weight: 700; cursor: pointer; }
+  #start { background: #16834b; color: white; }
+  #stop { background: #e8efeb; color: #244b38; }
+  small { display: block; margin-top: 18px; color: #71877b; }
+</style>
+</head>
+<body>
+<main>
+  <div class="drop">💧</div>
+  <h1>Water Reminder</h1>
+  <p>Take a little water break every hour. Stay hydrated!</p>
+  <div id="status" role="status">Reminder is stopped.</div>
+  <button id="start">Start reminders</button>
+  <button id="stop">Stop</button>
+  <small>Keep this page open. Allow notifications when your browser asks.</small>
+</main>
+<script>
+(() => {
+  const status = document.getElementById('status');
+  const start = document.getElementById('start');
+  const stop = document.getElementById('stop');
+  let timer = null;
+  let nextAt = null;
+
+  function notify() {
+    const message = 'Time to drink some water 💧';
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('Water Reminder', { body: message });
+    } else {
+      alert(message);
+    }
+    status.textContent = 'Reminder sent. Next reminder in 1 hour.';
+  }
+
+  start.addEventListener('click', async () => {
+    if (timer) return;
+    if ('Notification' in window && Notification.permission === 'default') {
+      try { await Notification.requestPermission(); } catch (_) {}
+    }
+    status.textContent = 'Reminders are on. First reminder in 1 hour.';
+    nextAt = Date.now() + 60 * 60 * 1000;
+    timer = setInterval(() => {
+      notify();
+      nextAt = Date.now() + 60 * 60 * 1000;
+    }, 60 * 60 * 1000);
+  });
+
+  stop.addEventListener('click', () => {
+    if (timer) clearInterval(timer);
+    timer = null;
+    nextAt = null;
+    status.textContent = 'Reminder is stopped.';
+  });
+})();
+</script>
+</body>
+</html>
